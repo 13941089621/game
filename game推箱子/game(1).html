@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width,initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+		<meta name="format-detection" content="telephone=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+		<link rel="stylesheet" type="text/css" href="css/txz.css" />
+		<meta charset="UTF-8" name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="HandheldFriendly" content="true">
+		<title>推箱</title>
+
+	</head>
+	<body onkeydown="doKeyDown(event)">
+		<div class="game">
+			<div id="msg"></div>
+			<div style="position: absolute;left: 0;top: 0;display: none;">
+				<input type="button" value="上" class="btn_top">
+				<input type="button" value="下" class="btn_bottom">
+				<input type="button" value="左" class="btn_left">
+				<input type="button" value="右" class="btn_right">
+			</div>
+			<!--游戏从玩-->
+			<div class="chongwan">
+				<img src="images/logo-zd.png" />
+			</div>
+			<!--游戏说明-->
+			<div class="game_sm">
+				<img src="images/logo-sm.png" />
+			</div>
+			<!--弹框new游戏规则-->
+			<div class="yxsm">
+				<div class="tanchahg"></div>
+				<div class="tanchahg-father-tall">
+					<div class="tanchahg-father-son">
+						<div class="tanchahg-father-all"><img src="images/logo-sm1.png" /></div>
+						<!--<div class="tanchahg-father-x"><img src="images/logo-ne.png" /></div>-->
+						<div class="tanchahg-father-span">
+							用手滑动屏幕的上、下、左、右键移动小人，把箱子全部推到小球的位置即可过关。箱子只可向前推，不能往后拉，并且小人一次只能推动一个箱子。
+						</div>
+						<div class="tanchahg-father-x-two"><img src="images/logo-zd1.png"/></div>
+					</div>
+				</div>
+			</div>
+			<!--从玩new	-->
+			<div class="cxw">
+				<div class="chongwan-beijing"></div>
+				<div class="chongwan-beijing-beijing">
+					<div class="chongwan-beijing-beijing-son">
+						<div class="tanchahg-father-all"><img src="images/logo-sm2.png"/></div>
+						<div class="tanchahg-father-span zhong">
+							<h2>是否从新完<span id="msga"></span></h2>					
+						</div>
+						<div class="tanchahg-father-img">
+							<div class="tanchahg-fathe-left"><img src="images/logo-no.png" alt="" /></div>
+							<div class="tanchahg-fathe-right" onClick="NextLevel(0)"><img src="images/logo-yes.png"/></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!--游戏关卡-->
+		<div class="yxgk">
+			
+			<div class="guanqia-beijing"></div>
+			<div class="guanqia-beijing-father">
+				<div class="guanqia-beijing-son">
+					<div class="guanqia-beijing-son-img">
+						<img src="images/logo-game.png" alt="" />
+					</div>
+					<div class="commnot"></div>
+					<div class="commnot_span"></div>
+					<div class="commnot-btn">
+						<img src="images/logo-ne.png"/>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="a" style="display: none; position: absolute; left: 0; top: 0;background-color: red; width: 100px;height: 100px;z-index: 100000"></div>
+		
+		<script src="js/mapdata100.js"></script>
+		
+		<script src="js/jquery-3.2.1.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/js.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/flexible 1.js" type="text/javascript" charset="utf-8"></script>
+		<script>
+			$(".game").append('<canvas id="canvas" width="' + document.documentElement.clientWidth + '" height="' + document.documentElement.clientHeight + '"></canvas>');
+
+			var x = document.documentElement.clientWidth / 12;
+			var y = document.documentElement.clientHeight / 18.8;
+			console.log(x)
+			var can = document.getElementById("canvas");
+			var msg = document.getElementById("msg");
+			var cxt = can.getContext("2d");
+			var w = x,
+				h = y;
+			var curMap; //当前的地图
+			var curLevel; //当前等级的地图
+			var curMan; //初始化小人
+			var iCurlevel = 0; //关卡数
+			var moveTimes = 0; //移动了多少次
+			//预加载所有图片
+
+	
+			// 过关之后弹出的信息
+			var aMsg1 = [
+				"是不是感觉特简单。",
+				"厉害了我的哥",
+				"即将进入年会"				
+			]
+			////恭喜过第一关图片
+			var aMsg = [				
+				'<img src="images/logo-5.png"/>',//恭喜过第一关
+				'<img src="images/logo-6.png"/>',	
+				'<img src="images/logo-1.png"/>'
+			]
+			//第一关图片
+			var dimg=[
+			
+				'<img src="images/logo-4.png"/>',//第一关
+				'<img src="images/logo-3.png"/>',
+				'<img src="images/logo-2.png"/>',
+			]
+			//所有img
+			var oImgs = {
+				"block": "images/block" + img1() + ".gif",
+				"wall": "images/wall" + img() + ".png",
+				//	"wall": "images/wall.png",
+				"box": "images/box" + img() + ".png",
+				"ball": "images/ball" + img() + ".png",
+				"up": "images/up" + img() + ".png",
+				"down": "images/down" + img() + ".png",
+				"left": "images/left" + img() + ".png",
+				"right": "images/right" + img() + ".png",
+			}
+			//图片img大小
+			function img() {
+				var x = document.documentElement.clientWidth;
+				if(x <= 400) {
+					return 1
+				} else if(x >= 400) {
+					return 2
+				} else if(x > 750) {
+					return 3
+				}
+			}
+			//背景图片大小
+			function img1(){
+				var x = document.documentElement.clientWidth;
+				if(x<=400){
+					return 4
+				}else if(x>400){
+					return 2
+				}else if(x>750){
+					return 3
+				}
+//				if(375< x <= 320) {
+//					return 4
+//				} else if( 375 <= x < 414) {
+//					return 2
+//				} else if(414>=x) {
+//					return 3
+//				}
+			}
+
+			function imgPreload(srcs, callback) {
+				var count = 0,
+					imgNum = 0,
+					images = {};
+
+				for(src in srcs) {
+					imgNum++;
+				}
+				for(src in srcs) {
+					images[src] = new Image();
+					images[src].onload = function() {
+						//判断是否所有的图片都预加载完成
+						if(++count >= imgNum) {
+							callback(images);
+						}
+					}
+					images[src].src = srcs[src];
+				}
+			}
+			var block, wall, box, ball, up, down, left, right;
+			imgPreload(oImgs, function(images) {
+				//				console.log(images.block);
+				block = images.block;
+				wall = images.wall;
+				box = images.box;
+				ball = images.ball;
+				up = images.up;
+				down = images.down;
+				left = images.left;
+				right = images.right;
+				init();
+			});
+			//初始化游戏
+			function init() {
+				//InitMap();
+				//DrawMap(levels[0]);
+				initLevel(); //初始化对应等级的游戏
+				showMoveInfo(); //初始化对应等级的游戏数据
+			}
+			//绘制地板
+			function InitMap() {
+				for(var i = 0; i < 35; i++) {
+					for(var j = 0; j < 12 ; j++) {
+						cxt.drawImage(block, w * j, h * i, w, h);
+					}
+				}
+			}
+			//小人位置坐标
+			function Point(x, y) {
+				this.x = x;
+				this.y = y;
+			}
+			var perPosition = new Point(5, 5); //小人的初始标值
+			//绘制每个游戏关卡地图
+			function DrawMap(level) {
+				for(var i = 0; i < level.length; i++) {
+					for(var j = 0; j < level[i].length; j++) {
+						var pic = block; //初始图片
+						switch(level[i][j]) {
+							case 1: //绘制墙壁
+								pic = wall;
+								break;
+							case 2: //绘制陷进
+								pic = ball;
+								break;
+							case 3: //绘制箱子
+								pic = box;
+								break;
+							case 4: //绘制小人
+								pic = curMan; //小人有四个方向 具体显示哪个图片需要和上下左右方位值关联
+								//获取小人的坐标位置
+								perPosition.x = i;
+								perPosition.y = j;
+								break;
+							case 5: //绘制箱子及陷进位置
+								pic = box;
+								break;
+						}
+						//每个图片不一样宽 需要在对应地板的中心绘制地图
+						if (level[i][j] == 0){
+                            cxt.drawImage(pic, w * j, h * i, w, h)
+                        } else {
+                            cxt.drawImage(pic, w * j - (pic.width - w) / 2, h * i - (pic.height - h), pic.width, pic.height)
+
+                        }
+                        // cxt.drawImage(pic, w * j - (pic.width - w) / 2, h * i - (pic.height - h), pic.width, pic.height)
+					}
+				}
+			}
+			//初始化游戏等级
+			function initLevel() {
+				curMap = copyArray(levels[iCurlevel]); //当前移动过的游戏地图
+				curLevel = levels[iCurlevel]; //当前等级的初始地图
+				curMan = down; //初始化小人
+				InitMap(); //初始化地板
+				DrawMap(curMap); //绘制出当前等级的地图
+			}
+			//下一关
+			function NextLevel(i) {
+				//iCurlevel当前的地图关数
+				iCurlevel = iCurlevel + i;
+				console.log(iCurlevel)
+				if(iCurlevel < 0) {
+					iCurlevel = 0;
+					return;
+				}
+				var len = levels.length;
+				if(iCurlevel > len-1) {
+					iCurlevel = len-1;
+//					window.location.href = "https://www.baidu.com/"
+				}
+				initLevel(); //初始当前等级关卡
+				moveTimes = 0; //游戏关卡移动步数清零
+				showMoveInfo(); //初始化当前关卡数据
+			}
+			// ding shi qi
+			var t_time;
+			//小人移动
+			function go(dir) {
+				var p1, p2;
+				switch(dir) {
+					case "up":
+						curMan = up;
+						//获取小人前面的两个坐标位置来进行判断小人是否能够移动
+						p1 = new Point(perPosition.x - 1, perPosition.y);
+						p2 = new Point(perPosition.x - 2, perPosition.y);
+						break;
+					case "down":
+						curMan = down;
+						p1 = new Point(perPosition.x + 1, perPosition.y);
+						p2 = new Point(perPosition.x + 2, perPosition.y);
+						break;
+					case "left":
+						curMan = left;
+						p1 = new Point(perPosition.x, perPosition.y - 1);
+						p2 = new Point(perPosition.x, perPosition.y - 2);
+						break;
+					case "right":
+						curMan = right;
+						p1 = new Point(perPosition.x, perPosition.y + 1);
+						p2 = new Point(perPosition.x, perPosition.y + 2);
+						break;
+				}
+				//若果小人能够移动的话，更新游戏数据，并重绘地图
+				if(Trygo(p1, p2)) {
+					moveTimes++;
+					showMoveInfo();
+				}
+				//重绘地板
+				InitMap();
+				//重绘当前更新了数据的地图
+				DrawMap(curMap);
+				//若果移动完成了进入下一关
+				if(checkFinish()) {
+					//					alert("恭喜过关！！");
+					//					alert(aMsg[iCurlevel]);
+//					$(".yxgk").show().find(".commnot").html(aMsg[iCurlevel])
+//					setTimeout(function() {
+//						$(".yxgk").hide().html("");
+//					}, 3000)
+
+					//游戏判断 3换logo
+//					console.log(iCurlevel > levels.length - 1, iCurlevel , levels.length - 1)
+					//游戏判断 3换logo
+					if(iCurlevel >= levels.length-1){
+					//	alert(11122)
+						$(".guanqia-beijing-son-img img").attr('src',"images/logo-game1.png")
+						$(".commnot-btn").css("display","none")
+						setTimeout(function(){
+							location.href = "http://www.baidu.com"
+						},2000)
+					}
+//					setTimeout(function(){
+//						if(iCurlevel==2){
+//						window.location.href = "https://www.baidu.com/"
+//						}
+//					},3000)
+					
+					
+					//添加管卡弹窗
+					$(".yxgk").show().find(".commnot").html(aMsg[iCurlevel])
+					$(".yxgk").show().find(".commnot_span").html(aMsg1[iCurlevel])
+				
+//					alert(1111)
+					//关闭按钮
+					$(".commnot-btn img").off('click')
+					$(".commnot-btn img").on('click',function (){
+						clearTimeout(t_time)
+						$(".yxgk").hide()	
+						NextLevel(1);
+					})
+					clearTimeout(t_time);
+					t_time = setTimeout(function() {
+						$(".yxgk").hide()	
+						NextLevel(1);
+					}, 3000)
+//				NextLevel(1);
+					
+					
+				}
+			}
+			//判断是否推成功
+			function checkFinish() {
+				for(var i = 0; i < curMap.length; i++) {
+					for(var j = 0; j < curMap[i].length; j++) {
+						//当前移动过的地图和初始地图进行比较，若果初始地图上的陷进参数在移动之后不是箱子的话就指代没推成功
+						if(curLevel[i][j] == 2 && curMap[i][j] != 3 || curLevel[i][j] == 5 && curMap[i][j] != 3) {
+							return false;
+						}
+					}
+				}
+				return true;
+			}
+			//判断小人是否能够移动
+			function Trygo(p1, p2) {
+				if(p1.x < 0) return false; //若果超出地图的上边，不通过
+				if(p1.y < 0) return false; //若果超出地图的左边，不通过
+				if(p1.x > curMap.length) return false; //若果超出地图的下边，不通过
+				if(p1.y > curMap[0].length) return false; //若果超出地图的右边，不通过
+				if(curMap[p1.x][p1.y] == 1) return false; //若果前面是墙，不通过
+				if(curMap[p1.x][p1.y] == 3 || curMap[p1.x][p1.y] == 5) { //若果小人前面是箱子那就还需要判断箱子前面有没有障碍物(箱子/墙)
+					if(curMap[p2.x][p2.y] == 1 || curMap[p2.x][p2.y] == 3) {
+						return false;
+					}
+					//若果判断不成功小人前面的箱子前进一步
+					curMap[p2.x][p2.y] = 3; //更改地图对应坐标点的值
+					//console.log(curMap[p2.x][p2.y]);
+				}
+				//若果都没判断成功小人前进一步
+				curMap[p1.x][p1.y] = 4; //更改地图对应坐标点的值
+				//若果小人前进了一步，小人原来的位置如何显示
+				var v = curLevel[perPosition.x][perPosition.y];
+				if(v != 2) //若果刚开始小人位置不是陷进的话
+				{
+					if(v == 5) //可能是5 既有箱子又陷进
+					{
+						v = 2; //若果小人本身就在陷进里面的话移开之后还是显示陷进
+					} else {
+						v = 0; //小人移开之后之前小人的位置改为地板
+					}
+				}
+				//重置小人位置的地图参数
+				curMap[perPosition.x][perPosition.y] = v;
+				//若果判断小人前进了一步，更新坐标值
+				perPosition = p1;
+				//若果小动了 返回true 指代能够移动小人
+				return true;
+			}
+			//判断是否推成功
+			//与键盘上的上下左右键关联
+			function doKeyDown(event) {
+				switch(event.keyCode) {
+					case 37: //左键头
+						go("left");
+						break;
+					case 38: //上键头
+						go("up");
+						break;
+					case 39: //右箭头
+						go("right");
+						break;
+					case 40: //下箭头
+						go("down");
+						break;
+				}
+
+			}
+			//完善关卡数据及游戏说明
+			function showMoveInfo() {
+				//				msg.innerHTML = "第" + (iCurlevel + 1) + "关 移动次数: " + moveTimes;
+//				msg.innerHTML = "第" + (iCurlevel + 1) + "关";
+				msga.innerHTML = "第" + (iCurlevel + 1) + "关";
+				msg.innerHTML = dimg[iCurlevel]
+			
+			}
+
+			//游戏说明
+			var showhelp = false;
+			//克隆二维数组
+			function copyArray(arr) {
+				var b = []; //每次移动更新地图数据都先清空再添加新的地图
+				for(var i = 0; i < arr.length; i++) {
+					b[i] = arr[i].concat(); //链接两个数组
+				}
+				return b;
+			}
+
+			var btn_top = document.getElementsByClassName("btn_top")[0];
+			var btn_left = document.getElementsByClassName("btn_left")[0];
+			var btn_right = document.getElementsByClassName("btn_right")[0];
+			var btn_bottom = document.getElementsByClassName("btn_bottom")[0];
+
+			var btn_event = "click";
+			btn_top.addEventListener(btn_event, function() {
+				go("up");
+			})
+			btn_left.addEventListener(btn_event, function() {
+				go("left");
+			})
+			btn_right.addEventListener(btn_event, function() {
+				go("right");
+			})
+			btn_bottom.addEventListener(btn_event, function() {
+				go("down");
+			})
+
+			var body = document.body;
+			var start = {}
+			body.addEventListener("touchstart", function(e) {
+				//				console.log(1,e)
+				start.x = e.touches[0].clientX;
+				start.y = e.touches[0].clientY;
+			})
+			//移动时间
+			var time = 50;
+			var timer;
+			body.addEventListener("touchmove", function(e) {
+				var x = e.touches[0].clientX;
+				var y = e.touches[0].clientY;
+
+				clearTimeout(timer);
+				timer = setTimeout(function() {
+					if(y < start.y - 1 && Math.abs(x - start.x) < Math.abs(y - start.y)) {
+						console.log("top");
+						go("up");
+					} else if(y > start.y + 1 && Math.abs(x - start.x) < Math.abs(y - start.y)) {
+						console.log("down");
+						go("down");
+					} else if(x > start.x + 1 && Math.abs(x - start.x) > Math.abs(y - start.y)) {
+						console.log("right");
+						go("right");
+					} else if(x < start.x - 1 && Math.abs(x - start.x) > Math.abs(y - start.y)) {
+						console.log("left");
+						go("left");
+					}
+				}, time)
+
+				//                console.log(21,e)
+			})
+
+			body.addEventListener("touchend", function() {
+				//                console.log(11)
+			})
+
+		</script>
+
+	</body>
+
+</html>
